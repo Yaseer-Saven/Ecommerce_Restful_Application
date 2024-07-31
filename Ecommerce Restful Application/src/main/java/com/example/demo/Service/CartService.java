@@ -32,13 +32,15 @@ public class CartService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found with id: " + productId));
 
-        // Checking whether product is in the cart or not
-        Cart existingCartItem = cartRepository.findByUserAndProduct(user, product).get();
-        if (existingCartItem != null) {
-            // Update quantity if product already in cart
+      // Checking whether product is in the cart or not
+        Optional<Cart> existingCartItemOptional = cartRepository.findByUserAndProduct(user, product);
+        if (existingCartItemOptional.isPresent()) {
+            // Update the quantity if product already in cart
+            Cart existingCartItem = existingCartItemOptional.get();
             existingCartItem.setQuantity(existingCartItem.getQuantity() + quantity);
             cartRepository.save(existingCartItem);
         } else {
+            //If the product is not present in the cart adding the product
             Cart cartItem = new Cart(user, product, quantity);
             cartRepository.save(cartItem);
         }

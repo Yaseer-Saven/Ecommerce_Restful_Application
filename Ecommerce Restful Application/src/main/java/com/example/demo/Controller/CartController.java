@@ -17,20 +17,42 @@ public class CartController {
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/addToCart")
     public void addToCart(@RequestParam Long userId, @RequestParam int productId, @RequestParam int quantity) {
-        cartService.addToCart(userId, productId, quantity);
+         try {
+            cartService.addToCart(userId, productId, quantity);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (AccessDeniedException e) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    // End point to retrieve the cart details based on the user id
+   // End point to retrieve the cart details based on the user id
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/getCartDetails/{userId}")
-    public List<CartDTO> getCartDetails(@PathVariable Long userId) {
-        return cartService.getCartDetails(userId);
+    public ResponseEntity<List<CartDTO>> getCartDetails(@PathVariable Long userId) {
+        try {
+            return new ResponseEntity<>(cartService.getCartDetails(userId), HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (AccessDeniedException e) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     // End point to deletion of the cart based on user id
     @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/deleteCart/{userId}")
     public String deleteCart(@PathVariable Long userId) {
-        return cartService.deleteCart(userId);
+        try{
+            cartService.deleteCart(userId);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch(AccessDeniedException a){
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

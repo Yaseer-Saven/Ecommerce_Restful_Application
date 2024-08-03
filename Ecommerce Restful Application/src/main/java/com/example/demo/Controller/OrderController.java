@@ -22,8 +22,12 @@ public class OrderController {
         try {
             List<OrderDTO> orderDTOs = orderService.createOrder(cartId, address);
             return ResponseEntity.ok(orderDTOs);
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied to access this resource");
+        } catch (NoSuchElementException n) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cart not found for id: " + cartId);
         } catch (Exception e) {
-            return ResponseEntity.status(404).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
         }
     }
 
@@ -31,14 +35,30 @@ public class OrderController {
     @PreAuthorize("hasRole('USER') OR hasRole('ADMIN')")
     @GetMapping("/getorders/{userId}")
     public List<OrderDTO> getOrdersByUserId(@PathVariable Long userId) {
-        return orderService.getOrdersByUserId(userId);
+         try {
+            return ResponseEntity.ok(orderService.getOrdersByUserId(userId));
+        } catch (AccessDeniedException a) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Not allowed to access this resource");
+        } catch (NoSuchElementException n) {
+            return ResponseEntity.status(404).body("No orders found for : " + userId);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
+        }
     }
 
     // End point to retrieve all orders
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/getorders")
     public List<OrderDTO> getOrders() {
-        return orderService.getAllOrders();
+          try {
+            return ResponseEntity.ok(orderService.getAllOrders());
+        } catch (AccessDeniedException m) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not allowed to access this resource");
+        } catch (NoSuchElementException n) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No order found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
+        }
     }
 
     // End point to update the order status
@@ -54,7 +74,15 @@ public class OrderController {
     @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/deleteorder")
     public String cancelOrderByUserId(@RequestParam int orderId) {
-        orderService.cancelOrder(orderId);
-        return "Order cancelled..!";
+        try {
+            orderService.cancelOrder(orderId);
+            return new ResponseEntity<>("Order cancelled..!", HttpStatus.OK);
+        } catch (NoSuchElementException n) {
+            return new ResponseEntity<>("No order exist for id: " + orderId, HttpStatus.OK);
+        } catch (AccessDeniedException e) {
+            return new ResponseEntity<>("Not allowed to access this resource", HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Order not found for id: " + orderId, HttpStatus.NOT_FOUND);
+        }
     }
 }

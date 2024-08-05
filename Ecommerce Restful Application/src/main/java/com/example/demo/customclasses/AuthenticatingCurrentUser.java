@@ -13,7 +13,7 @@ public class AuthenticatingCurrentUser {
     @Autowired
     private UserRepository userRepository;
 
-    // Authenticating the user ( To check whether the user is manipulating own data or others data )
+    // Authenticating the user ( To check whether the user is accessing their own data or others data )
     public User getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof UserDetails) {
